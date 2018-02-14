@@ -1,0 +1,646 @@
+<style>
+    .marketFooter{
+        font-size: 10px;
+        opacity: 0.6;
+    }
+    #networkLastReward{
+        text-transform: uppercase;
+    }
+    #lastHash{
+        font-size: 0.8em;
+    }
+    #poolDonations{
+        font-size: 0.75em;
+    }
+    #miningProfitCalc{
+        margin: 35px 0;
+    }
+    #calcHashDropdown{
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+    }
+    #calcHashHolder{
+        width: 590px;
+        max-width: 100%;
+    }
+    #calcHashRate{
+        z-index: inherit;
+    }
+    #calcHashAmount{
+    }
+    #calcHashResultsHolder{
+        min-width: 145px;
+        max-width: 145px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #yourStatsInput{
+        z-index: inherit;
+    }
+    #yourAddressDisplay > span {
+    }
+    #lookUp > span:nth-child(2){
+        display: none;
+    }
+    .yourStats{
+        display: none;
+    }
+    .yourStats > span {
+	    font-weight: bold;
+    }
+    #yourAddressDisplay{
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        font-size: 0.9em;
+    }
+    #addressError{
+        color: red;
+    }
+
+
+    #payments_rows > tr > td{
+        vertical-align: middle;
+        font-size: 0.95em;
+        text-align: center;
+    }
+    #payments_rows > tr > td:nth-child(2){
+        text-align: left;
+    }
+
+</style>
+
+
+
+<div class="stats">
+
+
+    <div class="input-group">
+        <input class="form-control" id="yourStatsInput" type="text" placeholder="Enter Your Payment Address Here">
+        <span class="input-group-btn"><button class="btn btn-default" type="button" id="lookUp">
+            <span><i class="fa fa-search"></i> Lookup</span>
+            <span><i class="fa fa-refresh fa-spin"></i> Searching...</span>
+        </button></span>
+    </div>
+
+<div id="daysdiv"> Your Total Hashrate History for  
+<button type="button" class="btn btn-default" id="mindays">&lt;</button>  	    
+<span id="numdays">2</span>
+<button type="button" class="btn btn-default" id="maxdays">&gt;</button>
+ days:
+</div>
+
+
+    <div id='statly' style='height:400px;'> </div>
+
+
+
+
+    <div id="addressError"></div>
+
+
+    <div class="yourStats"><i class="fa fa-tachometer"></i> 
+	    Total Hash Rate: (24h) <span id="averageHr"></span>
+	    (12h) <span id="a12h"></span>
+	    (1h) <span id="a1h"></span>
+
+	    (10m)  <span id="yourHashrateHolder"></span>
+    </div>
+
+
+
+    <div class="yourStats"><i class="fa fa-bank"></i> Pending Balance: <span id="yourPendingBalance"></span></div>
+
+
+    <div id="exchThold" class="yourStats"><i class="fa fa-info-circle"></i>You are using a non-standard address. Your free payout threshold is 5XMR </div>
+
+    <div id="thold" class="yourStats"><i class="fa fa-sort"></i> Free Payout Threshold:	    
+	    <button type="button" class="btn btn-default" id="previousthold">&lt;</button>  	    
+	    <span id="yourthold"></span>
+	    <button type="button" class="btn btn-default" id="nextthold">&gt;</button>
+    </div> 	
+
+    <div id="manp" class="yourStats"> 	    
+	    <span id="manp_info"></span>
+	    <button type="button" class="btn btn-default" id="manp_req">Request Manual Payment (0.004XMR Fee)</button>  	    
+	    <button type="button" class="btn btn-danger" id="manp_dis">Permanently Disable Manual Payments</button>  	    
+    </div> 	
+
+
+    <div class="yourStats"><i class="fa fa-money"></i> Total Paid: <span id="yourPaid"></span> <a href="#worker_payments"> Payment History </a></div>
+
+
+
+    <h3>Per Worker Stats:</h3>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th><i class="fa fa-tachometer"></i> Hash Rate</th>
+                <th><i class="fa fa-check"></i> Accepted Shares</th>
+                <th><i class="fa fa-clock-o"></i> Expired Shares</th>
+                <th><i class="fa fa-exclamation-circle"></i> Invalid Shares</th>
+                <th><i class="fa fa-clock-o"></i> Last Share Submitted</th>
+                <th><i class="fa fa-id"></i> Worker ID</th>
+            </tr>
+            </thead>
+            <tbody id="worker_rows">
+
+            </tbody>
+        </table>
+    </div>
+    <div>
+
+    <div class="panel-group">
+	    <div class="panel panel-default">
+		    <div class="panel-heading">
+			    <h4 class="panel-title">
+				    <a data-toggle="collapse" href="#widinfo"> Getting Started with Worker IDs </a>
+			    </h4>
+		    </div>
+		    <div id="widinfo" class="panel-collapse collapse">
+			    <div class="panel-body">
+    <p>Use this page to lookup per rig stats when using worker IDs. Input the base address and all the rigs will be listed. <br>
+    To use per rig stats, add a <code>workerID</code> to your miners username in the form <code>WALLET_ADDRESS.workerID</code>. <code>workerID</code>  can be any alphanumeric string less than 60 digits long, eg <code>1234</code>
+    or <code>pcgpu1</code> etc. Payment info will be shown under <code>WALLET_ADDRESS</code>. <br>
+    If mining to an exchange which uses paymentIDs, use the format of <code>EXCHANGE_WALLET_ADDRESS.payment_id.workerID</code> as the username and look under <code>EXCHANGE_WALLET_ADDRESS.payment_id</code>
+    for payment info. <br>
+    Please note you will need to wait upto an hour for the total pending balances to appear under <code>WALLET_ADDRESS</code>
+    or <code>EXCHANGE_WALLET_ADDRESS.payment_id</code></p> 
+
+    <p><b>note:</b> only 100 worker IDs per address are supported</p>
+
+		 <p>
+	   <b>Accepted Shares:</b> These are valid shares, and your payout is calculated based upon these. <br>
+	   <b>Expired Shares:</b> These are shares which were submitted too late for the current block. It is normal for this to be less than 1% of your accepted shares. <br>
+	   <b>Invalid Shares:</b> These are shares submitted which provide an incorrect hash. You should aim for this to be 0. Common causes are unstable overclocks.
+	   </p>
+
+    				</div>
+			</div>
+		</div>
+	</div>
+    </div>
+	  
+   </div> 
+
+</div>
+
+<script>
+
+
+    currentPage = {
+        destroy: function(){
+
+        },
+        update: function(){
+
+        }
+    };
+
+
+
+
+    function getReadableTime(seconds){
+
+        var units = [ [60, 'second'], [60, 'minute'], [24, 'hour'],
+            [7, 'day'], [4, 'week'], [12, 'month'], [1, 'year'] ];
+
+        function formatAmounts(amount, unit){
+            var rounded = Math.round(amount);
+            return '' + rounded + ' ' + unit + (rounded > 1 ? 's' : '');
+        }
+
+        var amount = seconds;
+        for (var i = 0; i < units.length; i++){
+            if (amount < units[i][0])
+                return formatAmounts(amount, units[i][1]);
+            amount = amount / units[i][0];
+        }
+        return formatAmounts(amount,  units[units.length - 1][1]);
+    }
+
+    function getReadableHashRateString(hashrate){
+        var i = 0;
+        var byteUnits = [' H', ' KH', ' MH', ' GH', ' TH', ' PH' ];
+        while (hashrate > 1000){
+            hashrate = hashrate / 1000;
+            i++;
+        }
+        return hashrate.toFixed(2) + byteUnits[i];
+    }
+
+
+
+
+    /* Hash Profitability Calculator */
+
+    $('#calcHashRate').keyup(calcEstimateProfit).change(calcEstimateProfit);
+
+    $('#calcHashUnits > li > a').click(function(e){
+        e.preventDefault();
+        $('#calcHashUnit').text($(this).text()).data('mul', $(this).data('mul'));
+        calcEstimateProfit();
+    });
+
+    function calcEstimateProfit(){
+        try {
+            var rateUnit = Math.pow(1024,parseInt($('#calcHashUnit').data('mul')));
+            var inp2 = parseFloat($('#calcHashRate').val()) * rateUnit;
+            var resl = 12 / ((lastStats.network.difficulty / inp2) / 86400);
+            if (!isNaN(resl)) {
+                updateText('calcHashAmount', (Math.round(resl * 100) / 100).toString());
+                return;
+            }
+        }
+        catch(e){ }
+        updateText('calcHashAmount', '');
+    }
+
+
+
+
+
+    /* Stats by mining address lookup */
+
+    function getPaymentCells(payment){
+        return '<td>' + formatDate(payment.time) + '</td>' +
+                '<td>' + formatPaymentLink(payment.hash) + '</td>' +
+                '<td>' + getReadableCoins(payment.amount, 4, true) + '</td>' +
+                '<td>' + payment.mixin + '</td>';
+    }
+
+    var xhrAddressPoll;
+    var addressTimeout;
+
+    $('#lookUp').click(function(){
+
+        address = $('#yourStatsInput').val().trim();
+        if (!address){
+            $('#yourStatsInput').focus();
+            return;
+        }
+
+        $('#addressError').hide();
+        $('#worker_rows').empty();
+        docCookies.setItem('mining_address', address, Infinity);
+	loadWID();
+	loadHist();
+
+      /*  $('#lookUp > span:first-child').hide();
+        $('#lookUp > span:last-child').show();
+
+
+        if (xhrAddressPoll) xhrAddressPoll.abort();
+        if (addressTimeout) clearTimeout(addressTimeout);
+
+        function fetchAddressStats(longpoll){
+            xhrAddressPoll = $.ajax({
+                url: api + '/stats_address',
+                data: {
+                    address: address,
+                    longpoll: longpoll
+                },
+                dataType: 'json',
+                cache: 'false',
+                success: function(data){
+
+                    $('#lookUp > span:last-child').hide();
+                    $('#lookUp > span:first-child').show();
+
+                    if (!data.stats){
+                        $('.yourStats').hide();
+                        $('#addressError').text(data.error).show();
+
+                        if (addressTimeout) clearTimeout(addressTimeout);
+                        addressTimeout = setTimeout(function(){
+                            fetchAddressStats(false);
+                        }, 2000);
+
+                        return;
+                    }
+
+
+                    $('#addressError').hide();
+                    updateText('yourAddressDisplay', address);
+
+                    if (data.stats.lastShare)
+                        $('#yourLastShare').timeago('update', new Date(parseInt(data.stats.lastShare) * 1000).toISOString());
+                    else
+                        updateText('yourLastShare', 'Never');
+
+                    updateText('yourHashrateHolder', (data.stats.hashrate || '0 H') + '/sec');
+                    updateText('yourHashes', (data.stats.hashes || 0).toString());
+                    updateText('yourPaid', getReadableCoins(data.stats.paid));
+                    updateText('yourPendingBalance', getReadableCoins(data.stats.balance));
+
+                    renderPayments(data.payments);
+
+                    $('.yourStats').show();
+
+                    docCookies.setItem('mining_address', address, Infinity);
+
+                    fetchAddressStats(true);
+
+                },
+                error: function(e){
+                    if (e.statusText === 'abort') return;
+                    $('#lookUp').html(lookupBtnHtml);
+                    $('#addressError').text('Connection error').show();
+
+                    if (addressTimeout) clearTimeout(addressTimeout);
+                    addressTimeout = setTimeout(function(){
+                        fetchAddressStats(false);
+                    }, 2000);
+                }
+            });
+        }
+        fetchAddressStats(false); */
+    });
+
+    var address = docCookies.getItem('mining_address');
+
+    if (address){
+        $('#yourStatsInput').val(address);
+        $('#lookUp').click();
+    }
+
+    $('#yourStatsInput').keyup(function(e){
+        if(e.keyCode === 13)
+            $('#lookUp').click();
+    });
+
+    var xhrGetWid;
+    function loadWID(){
+        if (xhrGetWid) xhrGetWid.abort();
+        xhrGetWid = $.ajax({
+            url: api + '/get_wid_stats',
+            data: {
+                address: address
+            },
+            dataType: 'json',
+            cache: 'false',
+            success: function(data){
+                renderWid(data);
+            }
+        });
+    }
+
+var days = 1;
+
+$('#mindays').click(function() {
+		if(days > 1) {
+			days--;
+			loadHist();
+		}
+});
+
+$('#maxdays').click(function() {
+		days++;
+		loadHist();
+});
+
+
+    var xhrGetHist;
+    function loadHist(){
+        if (xhrGetHist) xhrGetHist.abort();
+	if(!days)
+		days = 1;
+	updateText('numdays', days);
+        xhrGetHist = $.ajax({
+            url: statsapi + '/history_address',
+            data: {
+	    	days: days,
+                address: address
+            },
+            dataType: 'json',
+            cache: 'false',
+            success: function(data){
+                renderHist(data);
+            }
+        });
+    }
+
+function renderHist(histStats) {
+	var times = [];
+	var hrs = [];
+	var tot = 0;
+	var count = 0;
+	var c12h = 0;
+	var c1h = 0;
+	var tot12h = 0;
+	var tot1h = 0;
+	for (var reading = 0; reading < histStats.length-2; reading++) {
+		if(new Date(histStats[reading].rtime) > Date.now() - 1000 * 60 * 60) {
+			tot1h += histStats[reading].hr;
+			c1h += 1;
+		}
+		if(new Date(histStats[reading].rtime) > Date.now() - 1000 * 60 * 60 * 12) {
+			tot12h += histStats[reading].hr;
+			c12h += 1;
+		}
+		tot += histStats[reading].hr;
+		count += 1;
+		times.push(histStats[reading].rtime);
+		hrs.push((histStats[reading].hr + histStats[reading+1].hr + histStats[reading+2].hr)/3 || 0);
+	}
+	if(days == 1) {
+	updateText('averageHr', getReadableHashRateString(tot/count) + '/s');
+	updateText('a12h', getReadableHashRateString(tot12h/c12h) + '/s');
+	updateText('a1h', getReadableHashRateString(tot1h/c1h) + '/s');
+	}
+	var layout = {
+		autosize: true,
+		margin: {
+			l: 50,
+			r: 50,
+			b: 50,
+			t: 0,
+			pad: 4
+		},
+	yaxis: {
+	       rangemode: 'tozero',
+		title: 'H/s'
+	},
+	//title: 'Your Hashrate History'
+	}
+	Plotly.newPlot('statly', [{mode:'lines', x: times, y: hrs, fill: 'tozeroy'}], layout );
+
+}
+
+var thold;
+var xhrinfo;
+
+$('#manp_dis').click(function(){
+	if(confirm("Are you sure you want to permanently disable manual payouts? This action cannot be reversed. \n You do not need to disable manual payouts to recieve auto-payouts.")) {
+		if (xhrinfo) xhrinfo.abort();
+		xhrinfo = $.ajax({
+			url: api + '/set_info',
+			data: {
+				address: address,
+				type : 'manp',
+				amount : 2
+			},  
+			dataType: 'json',
+			cache: 'false',
+			success: function(data){		     
+				updateText('manp_info','Manual payments are disabled for your account');
+				$('#manp_req').hide();
+				$('#manp_dis').hide();
+			}
+		});
+	}
+});
+
+$('#manp_req').click(function(){
+	if(confirm("Are you sure you want to request a manual payout of your entire pending balance? \n The fee is 0.004XMR and it will take up to 24h")) {
+		if (xhrinfo) xhrinfo.abort();
+		xhrinfo = $.ajax({
+			url: api + '/set_info',
+			data: {
+				address: address,
+				type : 'manp',
+				amount : 1
+			},  
+			dataType: 'json',
+			cache: 'false',
+			success: function(data){		     
+				updateText('manp_info','Payment Scheduled');
+				$('#manp_req').hide();
+				$('#manp_dis').hide();
+			}
+		});
+	}
+});
+
+
+$('#previousthold').click(function(){
+	if (xhrinfo) xhrinfo.abort();
+	thold = Math.round(((thold / coinUnits  * 10  ) / 1.2),-2) * coinUnits / 10 ;
+	xhrinfo = $.ajax({
+		url: api + '/set_info',
+		data: {
+			address: address,
+			type : 'thold',
+			amount : thold 
+		},  
+		dataType: 'json',
+		cache: 'false',
+		success: function(data){		     
+			thold = data.thold;
+			updateText('yourthold',getReadableCoins(thold,3));
+		}
+	});
+});
+
+$('#nextthold').click(function(){
+	if (xhrinfo) xhrinfo.abort();
+	thold = Math.round(((thold / coinUnits * 10 ) * 1.2),-2) * coinUnits / 10 ;
+	xhrinfo = $.ajax({
+		url: api + '/set_info',
+		data: {
+			address: address,
+			type : 'thold',
+			amount : thold 
+		},  
+		dataType: 'json',
+		cache: 'false',
+		success: function(data){                 
+			thold = data.thold;
+			updateText('yourthold',getReadableCoins(thold,3));
+		}
+	});
+});
+
+
+function renderWid(workerStats) {
+	var $workerRows = $('#worker_rows');
+	var sublength = 0; //address.length;
+	var totalHash = 0;
+	$('.yourStats').hide();
+	for (worker in workerStats) {
+		var workerElement = document.createElement('tr');
+
+		if(workerStats[worker].address.indexOf('.') === -1 || (workerStats[worker].address.split('.').length == 2 && workerStats[worker].address.split('.')[1].length === 64)){
+
+			$('.yourStats').show();
+			updateText('yourPaid', getReadableCoins(workerStats[worker].paid));
+			updateText('yourPendingBalance', getReadableCoins(workerStats[worker].balance));
+			thold = workerStats[worker].thold || 2000000000000;
+			updateText('yourthold', getReadableCoins(thold, 3));
+			var manp = workerStats[worker].manp || 0;
+			if(manp == 1) {
+				updateText('manp_info', 'Payment Scheduled');
+				$('#manp_req').hide();
+				$('#manp_dis').hide();
+			}
+			else if(manp == 2) {
+				updateText('manp_info', 'Manual payments are disabled for your account');
+				$('#manp_req').hide();
+				$('#manp_dis').hide();
+			}
+			else {
+				$('#manp_req').show();
+				$('#manp_dis').show();
+				updateText('manp_info', '');
+			}
+
+			/* hide thold for exch */
+			if(workerStats[worker].address.length != 95) {
+				$('#thold').hide();
+			}
+			else{
+				$('#thold').show();
+			}
+			if(workerStats[worker].address.length === 160 || workerStats[worker].address.length === 106)
+				$('#exchThold').show();
+			else
+				$('#exchThold').hide();
+
+
+		}
+
+
+		totalHash = totalHash + parseInt(workerStats[worker].hashrate);
+
+		var hashTime = 'Never';
+		if(workerStats[worker].lastShare) {
+			hashTime = jQuery.timeago(new Date(parseInt(workerStats[worker].lastShare)  * 1000)); 
+		}
+		
+		workerElement.setAttribute('hashrate', parseInt(workerStats[worker].hashrate));
+		workerElement.innerHTML = '<td>' + getReadableHashRateString(workerStats[worker].hashrate) + '/s</td>' +
+			'<td>' + (workerStats[worker].hashes || 0) + '</td>' +
+			'<td>' + (workerStats[worker].expired || 0) + '</td>' +
+			'<td>' + (workerStats[worker].invalid || 0) + '</td>' +
+			'<td>' + hashTime +  ' </td>' +
+			'<td> ' + workerStats[worker].address.substring(0,3) + '...' + workerStats[worker].address.substring(92) + '</td>';
+
+		var inserted = false;
+		var rows = $workerRows.children().get();
+		for (var f = 0; f < rows.length; f++) {
+			var pTime = parseInt(rows[f].getAttribute('hashrate'));
+			if (pTime < parseInt(workerStats[worker].hashrate)){
+				inserted = true;
+				$(rows[f]).before(workerElement);
+				break;
+			}
+		}
+		if(!inserted)
+			$workerRows.append(workerElement);
+	}
+
+
+
+	//total
+	updateText('yourHashrateHolder', getReadableHashRateString(totalHash) + '/s');
+
+};
+
+
+</script>
